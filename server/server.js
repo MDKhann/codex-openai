@@ -5,8 +5,10 @@ import { Configuration, OpenAIApi } from 'openai'
 
 dotenv.config()
 
+console.log(process.env.OPENAI_API_KEY)
+
 const configuration = new Configuration({
-    apiKey: "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"
+    apiKey: (process.env.OPENAI_API_KEY)
 })
 
 const openai = new OpenAIApi(configuration)
@@ -27,21 +29,28 @@ app.post('/', async (req,res) => {
         console.log("Recieved request")
         console.log(req.body)
         
-        const response = await openai.createCompletion({
-            model: 'text-davinci-003',
-            prompt: `${prompt}`,
-            temperature: 0,
-            max_tokens: 1000,
-            top_p: 1,
-            frequency_penalty: 0.5,
-            presence_penalty: 0,
-        })
-        console.log(response.data.choices[0].text)
-        res.status(200).send({
-            bot: response.data.choices[0].text
-        })
+        try {
+            const response = await openai.createCompletion({
+                model: 'text-davinci-003',
+                prompt: `${prompt}`,
+                temperature: 0,
+                max_tokens: 1000,
+                top_p: 1,
+                frequency_penalty: 0.5,
+                presence_penalty: 0,
+            })
+            res.status(200).send({
+                bot: response.data.choices[0].text
+            })
+            console.log(response)
+        } catch (err) {
+            console.error("Error contacting OPENAI services")
+            res.status(500).send({"error":"Error contacting with OpenAi services"})
+        }
+
+
     } catch(error) {
-        console.log(error)
+        console.error(error)
         res.status(500).send({error})
     }
 })
